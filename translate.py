@@ -1,6 +1,5 @@
 # Copyright (c) 2023 Lincoln D. Stein
 from typing import Literal
-from pydantic import Field
 from invokeai.app.invocations.baseinvocation import (
     BaseInvocation,
     BaseInvocationOutput,
@@ -11,7 +10,6 @@ from invokeai.app.invocations.baseinvocation import (
 from invokeai.app.invocations.fields import (
     InputField,
     OutputField,
-    UIType,
 )
 
 translate_available = False
