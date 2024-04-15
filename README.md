@@ -1,5 +1,5 @@
-# Text Translations
-A node for allowing text translation in InvokeAI
+# Text Translation Node
+A node for allowing text translation in [InvokeAI](https://github.com/invoke-ai/InvokeAI)
 
 Currently uses the [python transformers library](https://pypi.org/project/translators/#description).
 
