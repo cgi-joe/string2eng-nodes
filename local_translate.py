@@ -11,34 +11,46 @@ from invokeai.app.invocations.baseinvocation import (
 from invokeai.app.invocations.fields import (
     InputField,
     OutputField,
+    UIComponent,
 )
 
-def get_models_and_prompt():
-    try:
-        import ollama
-        try:
-            from langchain_community.llms import Ollama
-            try:
-                llms = ollama.list()
-                models = tuple(model['name'] for model in llms['models'])
-                if len(models) > 0:
-                    return models, "", True
-                else:
-                    return ("None Installed",), "To use this node, please run 'ollama pull llama2'", False
-            except Exception as e:
-                print(f"Error listing Ollama models: {e}")
-                return ("None Installed",), "To use this node, please run 'ollama pull llama2'", False
-        except ImportError:
-            return ("None Installed",), "To use this node, please run 'pip install langchain-community'", False
-    except ImportError:
-        return ("None Installed",), "To use this node, please run 'pip install ollama'", False
+DEFAULT_PROMPT = ""
+OLLAMA_AVAILABLE = False
+LANGCHAIN_COMMUNITY_AVAILABLE = False
+MODELS_AVAILABLE = False
+OLLAMA_MODELS = ("None Installed",)
 
-OLLAMA_MODELS, DEFAULT_PROMPT, MODELS_AVAILABLE = get_models_and_prompt()
+try:
+    import ollama
+    OLLAMA_AVAILABLE = True
+except ImportError:
+    DEFAULT_PROMPT = "To use this node, please run 'pip install ollama'"
+
+if OLLAMA_AVAILABLE:
+    try:
+        from langchain_community.llms import Ollama
+        LANGCHAIN_COMMUNITY_AVAILABLE = True
+    except ImportError:
+        DEFAULT_PROMPT = "To use this node, please run 'pip install langchain-community'"
+
+if OLLAMA_AVAILABLE and LANGCHAIN_COMMUNITY_AVAILABLE:
+    try:
+        llms = ollama.list()
+        OLLAMA_MODELS = tuple(model['name'] for model in llms['models'])
+        if len(OLLAMA_MODELS) > 0:
+            MODELS_AVAILABLE = True
+        else:
+            OLLAMA_MODELS = ("None Installed",)
+            DEFAULT_PROMPT = "To use this node, please run 'ollama pull llama2'"
+    except Exception as e:
+        print(f"Error listing Ollama models: {e}")
+        OLLAMA_MODELS = ("None Installed",)
+        DEFAULT_PROMPT = "To use this node, please run 'ollama pull llama2'"
 
 @invocation_output("Str2EnglishLocalOutput")
 class Str2EngLocalOutput(BaseInvocationOutput):
     """Translated string output"""
-    prompt: str = OutputField(default=None, description="The translated prompt string")
+    value: str = OutputField(default=None, description="The translated prompt string")
 
 @invocation(
     "StringToEnglishLocalInvocation",
@@ -51,16 +63,15 @@ class Str2EngLocalInvocation(BaseInvocation):
     """Use the local Ollama model to translate text into English prompts"""
 
     # Inputs
-    text: str = InputField(default=DEFAULT_PROMPT, description="Prompt in any language")
+    value: str = InputField(default=DEFAULT_PROMPT, description="Prompt in any language", ui_component=UIComponent.Textarea)
     model: Literal[OLLAMA_MODELS] = InputField(default=OLLAMA_MODELS[0], description="The Ollama model to use")
 
     def invoke(self, context: InvocationContext) -> Str2EngLocalOutput:
         if not MODELS_AVAILABLE:
             return Str2EngLocalOutput(prompt="")
 
-        from langchain_community.llms import Ollama
         llm = Ollama(model=self.model, temperature=0)
         prompt = "Translate the following text, which will appear after a colon, into English. Do not respond with anything but the translation. Do not specify this is a translation. Only provide the translated text. Text:"
-        user_input = self.text
+        user_input = self.value
         response = llm.invoke(prompt + user_input)[1:]
-        return Str2EngLocalOutput(prompt=response)
+        return Str2EngLocalOutput(value=response)

@@ -11,6 +11,7 @@ from invokeai.app.invocations.baseinvocation import (
 from invokeai.app.invocations.fields import (
     InputField,
     OutputField,
+    UIComponent,
 )
 
 translate_available = False
@@ -26,7 +27,7 @@ DEFAULT_PROMPT = "" if translate_available else "To use this node, please 'pip i
 @invocation_output("Str2EngOutput")
 class Str2EngOutput(BaseInvocationOutput):
     """Translated string output"""
-    prompt: str = OutputField(default=None, description="The translated prompt string")
+    value: str = OutputField(default=None, description="The translated prompt string")
 
 @invocation(
     "Str2EngInvocation",
@@ -39,9 +40,9 @@ class Str2EngInvocation(BaseInvocation):
     """Use the translators package to translate 330 languages into English prompts"""
 
     # Inputs
-    text: str = InputField(default=DEFAULT_PROMPT, description="Prompt in any language")
+    value: str = InputField(default=DEFAULT_PROMPT, description="Prompt in any language", ui_component=UIComponent.Textarea)
     translator: Literal[TRANSLATORS] = InputField(default="google", description="The translator service to use")
 
     def invoke(self, context: InvocationContext) -> Str2EngOutput:
-        translation: str = ts.translate_text(self.text, translator=self.translator)
-        return Str2EngOutput(prompt=translation)
+        translation: str = ts.translate_text(self.value, translator=self.translator)
+        return Str2EngOutput(value=translation)
