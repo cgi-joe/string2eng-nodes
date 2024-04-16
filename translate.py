@@ -1,4 +1,5 @@
 # Copyright (c) 2023 Lincoln D. Stein
+
 from typing import Literal
 from invokeai.app.invocations.baseinvocation import (
     BaseInvocation,
@@ -22,24 +23,25 @@ except:
 
 DEFAULT_PROMPT = "" if translate_available else "To use this node, please 'pip install --upgrade translators'"
 
-@invocation_output("TranslateOutput")
-class TranslateOutput(BaseInvocationOutput):
+@invocation_output("StringToEnglishOutput")
+class StringToEnglishOutput(BaseInvocationOutput):
     """Translated string output"""
     prompt: str = OutputField(default=None, description="The translated prompt string")
 
 @invocation(
-    "TranslateInvocation",
-    title="Translate",
+    "StringToEnglishInvocation",
+    title="String To English",
     tags=["prompt", "translate", "translator"],
     category="prompt",
     version="1.0.1",
 )
-class TranslateInvocation(BaseInvocation):
+class StringToEnglishInvocation(BaseInvocation):
     """Use the translators package to translate 330 languages into English prompts"""
+
     # Inputs
     text: str = InputField(default=DEFAULT_PROMPT, description="Prompt in any language")
     translator: Literal[TRANSLATORS] = InputField(default="google", description="The translator service to use")
 
-    def invoke(self, context: InvocationContext) -> TranslateOutput:
+    def invoke(self, context: InvocationContext) -> StringToEnglishOutput:
         translation: str = ts.translate_text(self.text, translator=self.translator)
-        return TranslateOutput(prompt=translation)
+        return StringToEnglishOutput(prompt=translation)
