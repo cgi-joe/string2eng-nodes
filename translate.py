@@ -23,25 +23,25 @@ except:
 
 DEFAULT_PROMPT = "" if translate_available else "To use this node, please 'pip install --upgrade translators'"
 
-@invocation_output("StringToEnglishOutput")
-class StringToEnglishOutput(BaseInvocationOutput):
+@invocation_output("Str2EngOutput")
+class Str2EngOutput(BaseInvocationOutput):
     """Translated string output"""
     prompt: str = OutputField(default=None, description="The translated prompt string")
 
 @invocation(
-    "StringToEnglishInvocation",
-    title="String To English",
+    "Str2EngInvocation",
+    title="String to English",
     tags=["prompt", "translate", "translator"],
     category="prompt",
     version="1.0.1",
 )
-class StringToEnglishInvocation(BaseInvocation):
+class Str2EngInvocation(BaseInvocation):
     """Use the translators package to translate 330 languages into English prompts"""
 
     # Inputs
     text: str = InputField(default=DEFAULT_PROMPT, description="Prompt in any language")
     translator: Literal[TRANSLATORS] = InputField(default="google", description="The translator service to use")
 
-    def invoke(self, context: InvocationContext) -> StringToEnglishOutput:
+    def invoke(self, context: InvocationContext) -> Str2EngOutput:
         translation: str = ts.translate_text(self.text, translator=self.translator)
-        return StringToEnglishOutput(prompt=translation)
+        return Str2EngOutput(prompt=translation)

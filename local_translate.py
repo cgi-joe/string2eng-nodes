@@ -35,8 +35,8 @@ def get_models_and_prompt():
 
 OLLAMA_MODELS, DEFAULT_PROMPT, MODELS_AVAILABLE = get_models_and_prompt()
 
-@invocation_output("StringToEnglishLocalOutput")
-class StringToEnglishLocalOutput(BaseInvocationOutput):
+@invocation_output("Str2EnglishLocalOutput")
+class Str2EngLocalOutput(BaseInvocationOutput):
     """Translated string output"""
     prompt: str = OutputField(default=None, description="The translated prompt string")
 
@@ -47,17 +47,20 @@ class StringToEnglishLocalOutput(BaseInvocationOutput):
     category="prompt",
     version="1.0.0",
 )
-class StringToEnglishLocalInvocation(BaseInvocation):
+class Str2EngLocalInvocation(BaseInvocation):
     """Use the local Ollama model to translate text into English prompts"""
 
     # Inputs
     text: str = InputField(default=DEFAULT_PROMPT, description="Prompt in any language")
     model: Literal[OLLAMA_MODELS] = InputField(default=OLLAMA_MODELS[0], description="The Ollama model to use")
 
-    def invoke(self, context: InvocationContext) -> StringToEnglishLocalOutput:
+    def invoke(self, context: InvocationContext) -> Str2EngLocalOutput:
         if not MODELS_AVAILABLE:
-            return StringToEnglishLocalOutput(prompt="")
+            return Str2EngLocalOutput(prompt="")
 
         from langchain_community.llms import Ollama
         llm = Ollama(model=self.model, temperature=0)
-        prompt = "Translate the following text, which will appear after a colon, into English. Do not respond with anything but the translation.
+        prompt = "Translate the following text, which will appear after a colon, into English. Do not respond with anything but the translation. Do not specify this is a translation. Only provide the translated text. Text:"
+        user_input = self.text
+        response = llm.invoke(prompt + user_input)[1:]
+        return Str2EngLocalOutput(prompt=response)
