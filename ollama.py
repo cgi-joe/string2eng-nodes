@@ -1,6 +1,7 @@
 # Copyright (c) 2024 Joseph E. Kubler
 
 from typing import Literal
+
 from invokeai.app.invocations.baseinvocation import (
     BaseInvocation,
     BaseInvocationOutput,
@@ -43,35 +44,32 @@ if OLLAMA_AVAILABLE and LANGCHAIN_COMMUNITY_AVAILABLE:
             OLLAMA_MODELS = ("None Installed",)
             DEFAULT_PROMPT = "To use this node, please run 'ollama pull llama2'"
     except Exception as e:
-        print(f"Error listing Ollama models: {e}")
         OLLAMA_MODELS = ("None Installed",)
         DEFAULT_PROMPT = "To use this node, please run 'ollama pull llama2'"
 
-@invocation_output("Str2EnglishLocalOutput")
-class Str2EngLocalOutput(BaseInvocationOutput):
-    """Translated string output"""
-    value: str = OutputField(default=None, description="The translated prompt string")
+@invocation_output("OllamaResponseOutput")
+class OllamaResponseOutput(BaseInvocationOutput):
+    """Ollama response output"""
+    Response: str = OutputField(default=None, description="The response from the Ollama model")
 
 @invocation(
-    "StringToEnglishLocalInvocation",
-    title="String to English (Local LLM)",
-    tags=["prompt", "translate", "ollama"],
+    "OllamaInvocation",
+    title="Ollama Invocation",
+    tags=["prompt", "ollama"],
     category="prompt",
     version="1.0.0",
 )
-class Str2EngLocalInvocation(BaseInvocation):
-    """Use the local Ollama model to translate text into English prompts"""
-
+class OllamaInvocation(BaseInvocation):
+    """Use the local Ollama model to generate responses based on a prompt and temperature"""
     # Inputs
-    value: str = InputField(default=DEFAULT_PROMPT, description="Prompt in any language", ui_component=UIComponent.Textarea)
+    prompt: str = InputField(default=DEFAULT_PROMPT, description="Prompt for the Ollama model", ui_component=UIComponent.Textarea)
+    temperature: float = InputField(default=0.7, description="The temperature to use for the Ollama model")
     model: Literal[OLLAMA_MODELS] = InputField(default=OLLAMA_MODELS[0], description="The Ollama model to use")
 
-    def invoke(self, context: InvocationContext) -> Str2EngLocalOutput:
+    def invoke(self, context: InvocationContext) -> OllamaResponseOutput:
         if not MODELS_AVAILABLE:
-            return Str2EngLocalOutput(prompt="")
+            return OllamaResponseOutput(value="")
 
-        llm = Ollama(model=self.model, temperature=0)
-        prompt = "Translate the following text, which will appear after a colon, into English. Do not respond with anything but the translation. Do not specify this is a translation. Only provide the translated text. Text:"
-        user_input = self.value
-        response = llm.invoke(prompt + user_input)[1:]
-        return Str2EngLocalOutput(value=response)
+        llm = Ollama(model=self.model, temperature=self.temperature)
+        response = llm.invoke(self.prompt)
+        return OllamaResponseOutput(value=response.strip())
