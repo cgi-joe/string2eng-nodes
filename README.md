@@ -38,4 +38,4 @@ Essentially, the input of this node is added to a prompt which instructs the LLM
 
 The installation instructions are identical to String to English (Local LLM) above.
 
-This node essentially offers everything the String to English (Local LLM) node does and more by offering complete control to the LLM's prompting. 
+This node essentially offers everything the String to English (Local LLM) node does and more by offering a more complete control to the LLM's prompting. 
