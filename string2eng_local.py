@@ -1,20 +1,20 @@
 # Copyright (c) 2024 Joseph E. Kubler
 
 from typing import Literal
-from invokeai.app.invocations.baseinvocation import (
+from invokeai.invocation_api import (
     BaseInvocation,
     BaseInvocationOutput,
     InvocationContext,
     invocation,
     invocation_output,
-)
-from invokeai.app.invocations.fields import (
     InputField,
     OutputField,
     UIComponent,
 )
 
-DEFAULT_PROMPT = ""
+PROMPT = "Translate the following text, which will appear after a colon, into English. Do not respond with anything but the translation. Do not specify this is a translation. Only provide the translated text. Text:"
+
+FIELD_VALUE = ""
 OLLAMA_AVAILABLE = False
 LANGCHAIN_COMMUNITY_AVAILABLE = False
 MODELS_AVAILABLE = False
@@ -24,14 +24,14 @@ try:
     import ollama
     OLLAMA_AVAILABLE = True
 except ImportError:
-    DEFAULT_PROMPT = "To use this node, please run 'pip install ollama'"
+    FIELD_VALUE = "To use this node, please run 'pip install ollama'"
 
 if OLLAMA_AVAILABLE:
     try:
         from langchain_community.llms import Ollama
         LANGCHAIN_COMMUNITY_AVAILABLE = True
     except ImportError:
-        DEFAULT_PROMPT = "To use this node, please run 'pip install langchain-community'"
+        FIELD_VALUE = "To use this node, please run 'pip install langchain-community'"
 
 if OLLAMA_AVAILABLE and LANGCHAIN_COMMUNITY_AVAILABLE:
     try:
@@ -41,10 +41,10 @@ if OLLAMA_AVAILABLE and LANGCHAIN_COMMUNITY_AVAILABLE:
             MODELS_AVAILABLE = True
         else:
             OLLAMA_MODELS = ("None Installed",)
-            DEFAULT_PROMPT = "To use this node, please run 'ollama pull llama2'"
+            FIELD_VALUE = "To use this node, please run 'ollama pull llama2'"
     except Exception as e:
         OLLAMA_MODELS = ("None Installed",)
-        DEFAULT_PROMPT = "To use this node, please run 'ollama pull llama2'"
+        FIELD_VALUE = "To use this node, please run 'ollama pull llama2'"
 
 @invocation_output("Str2EngLocalOutput")
 class Str2EngLocalOutput(BaseInvocationOutput):
@@ -62,7 +62,7 @@ class Str2EngLocalInvocation(BaseInvocation):
     """Use the local Ollama model to translate text into English prompts"""
 
     # Inputs
-    value: str = InputField(default=DEFAULT_PROMPT, description="Prompt in any language", ui_component=UIComponent.Textarea)
+    value: str = InputField(default=FIELD_VALUE, description="Prompt in any language", ui_component=UIComponent.Textarea)
     model: Literal[OLLAMA_MODELS] = InputField(default=OLLAMA_MODELS[0], description="The Ollama model to use")
 
     def invoke(self, context: InvocationContext) -> Str2EngLocalOutput:
@@ -70,7 +70,6 @@ class Str2EngLocalInvocation(BaseInvocation):
             return Str2EngLocalOutput(prompt="")
 
         llm = Ollama(model=self.model, temperature=0)
-        prompt = "Translate the following text, which will appear after a colon, into English. Do not respond with anything but the translation. Do not specify this is a translation. Only provide the translated text. Text:"
         user_input = self.value
-        response = llm.invoke(prompt + user_input)
+        response = llm.invoke(PROMPT + user_input)
         return Str2EngLocalOutput(value=response.strip())

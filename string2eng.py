@@ -1,14 +1,12 @@
 # Copyright (c) 2023 Lincoln D. Stein
 
 from typing import Literal
-from invokeai.app.invocations.baseinvocation import (
+from invokeai.invocation_api  import (
     BaseInvocation,
     BaseInvocationOutput,
     InvocationContext,
     invocation,
     invocation_output,
-)
-from invokeai.app.invocations.fields import (
     InputField,
     OutputField,
     UIComponent,
