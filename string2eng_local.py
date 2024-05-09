@@ -44,7 +44,7 @@ if OLLAMA_AVAILABLE and LANGCHAIN_COMMUNITY_AVAILABLE:
             DEFAULT_PROMPT = "To use this node, please run 'ollama pull llama2'"
     except Exception as e:
         OLLAMA_MODELS = ("None Installed",)
-        DEFAULT_PROMPT = "To use this node, please run 'ollama pull llama2'"
+        DEFAULT_PROMPT = "OLLAMA_MODELS'"
 
 @invocation_output("Str2EngLocalOutput")
 class Str2EngLocalOutput(BaseInvocationOutput):
